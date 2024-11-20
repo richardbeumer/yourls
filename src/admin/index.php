@@ -1,6 +1,6 @@
 <?php
 define( 'YOURLS_ADMIN', true );
-require_once( dirname( __DIR__ ).'/includes/load-yourls.php' );
+use ( dirname( __DIR__ ).'/includes/load-yourls.php');
 yourls_maybe_require_auth();
 
 // Variables
@@ -39,7 +39,6 @@ if( $search && $search_in && $search_in_text ) {
         // Search across all fields. The resulting SQL will be something like:
         // SELECT * FROM `yourls_url` WHERE CONCAT_WS('',`keyword`,`url`,`title`,`ip`) LIKE ("%ozh%")
         // CONCAT_WS because CONCAT('foo', 'bar', NULL) = NULL. NULL wins. Not sure if values can be NULL now or in the future, so better safe.
-        // TODO: pay attention to this bit when the DB schema changes
     } else {
 				$where['sql'] .= " AND $search_in LIKE (:search)";
 				$where['binds']['search'] = $search;
@@ -105,7 +104,7 @@ if ( !empty($where['sql']) ) {
 }
 
 // This is a bookmarklet
-if ( isset( $_GET['u'] ) or isset( $_GET['up'] ) ) {
+if ( isset( $_GET['u'] ) || isset( $_GET['up'] ) ) {
 	$is_bookmark = true;
 	yourls_do_action( 'bookmarklet' );
 
@@ -151,6 +150,7 @@ if ( isset( $_GET['u'] ) or isset( $_GET['up'] ) ) {
 	// Sharing with social bookmarklets
 	if( !empty($_GET['share']) ) {
 		yourls_do_action( 'pre_share_redirect' );
+		$message='Short URL created, but could not redirect to %s !'
 		switch ( $_GET['share'] ) {
 			case 'twitter':
 				// share with Twitter
@@ -160,7 +160,7 @@ if ( isset( $_GET['u'] ) or isset( $_GET['up'] ) ) {
 				// Deal with the case when redirection failed:
 				$return['status']    = 'error';
 				$return['errorCode'] = '400';
-				$return['message']   = yourls_s( 'Short URL created, but could not redirect to %s !', 'Twitter' );
+				$return['message']   = yourls_s( $message, 'Twitter' );
 				break;
 
 			case 'facebook':
@@ -171,7 +171,7 @@ if ( isset( $_GET['u'] ) or isset( $_GET['up'] ) ) {
 				// Deal with the case when redirection failed:
 				$return['status']    = 'error';
 				$return['errorCode'] = '400';
-				$return['message']   = yourls_s( 'Short URL created, but could not redirect to %s !', 'Facebook' );
+				$return['message']   = yourls_s( $message, 'Facebook' );
 				break;
 
 			case 'tumblr':
@@ -246,8 +246,9 @@ if ( !$is_bookmark ) { ?>
 	<p><?php echo $search_sentence; ?></p>
 	<p><?php
 		printf( yourls__( 'Display <strong>%1$s</strong> to <strong class="increment">%2$s</strong> of <strong class="increment">%3$s</strong> URLs' ), $display_on_page, $max_on_page, $total_items );
-		if( $total_items_clicks !== false )
+		if( $total_items_clicks !== false ) {
 			echo ", " . sprintf( yourls_n( 'counting <strong>1</strong> click', 'counting <strong>%s</strong> clicks', $total_items_clicks ), yourls_number_format_i18n( $total_items_clicks ) );
+		}
 	?>.</p>
 <?php } ?>
 <p id="overall_tracking"><?php printf( yourls__( 'Overall, tracking <strong class="increment">%1$s</strong> links, <strong>%2$s</strong> clicks, and counting!' ), yourls_number_format_i18n( $total_urls ), yourls_number_format_i18n( $total_clicks ) ); ?></p>
@@ -319,8 +320,9 @@ yourls_table_end();
 
 yourls_do_action( 'admin_page_after_table' );
 
-if ( $is_bookmark )
+if ( $is_bookmark ) {
 	yourls_share_box( $url, $return['shorturl'], $title, $text );
+}
 ?>
 
 <?php yourls_html_footer( ); ?>
